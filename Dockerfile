@@ -1,8 +1,18 @@
-FROM arm64v8/alpine
-RUN apk --no-cache add build-base git luajit perl linux-headers
-RUN git clone --depth 1 https://github.com/wg/wrk
-RUN cd wrk && sed -i 's/LDFLAGS += -Wl,-E/LDFLAGS += -Wl,-E -static/g' Makefile && make
+FROM arm64v8/ubuntu
+RUN apt-get update && apt-get install -y build-essential git unzip
+RUN git clone --depth 1 https://gitee.com/wjt1999/wrk
+RUN cd wrk && make -j8
 
-FROM arm64v8/alpine
+FROM arm64v8/ubuntu
+RUN apt-get -y update && \
+    apt-get --no-install-recommends -y install jq netbase && \
+    apt-get clean \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/doc-base
 COPY --from=0 /wrk/wrk /bin/
-CMD [ "/bin/wrk", "-h" ]
+CMD [ "/bin/wrk" ]
